@@ -1,0 +1,16 @@
+{
+  "enabled": false,
+  "intervalMs": 2000,
+  "timeoutMs": 1200,
+  "debug": false,
+  "controllerUrl": "http://127.0.0.1:9097",
+  "token": "",
+  "systemProxyServers": [
+    "127.0.0.1:7897"
+  ],
+  "coreProcessNames": [
+    "verge-mihomo.exe",
+    "mihomo.exe",
+    "clash-meta.exe"
+  ]
+}

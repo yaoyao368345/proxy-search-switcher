@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+work/
+*.local.json
+*.log
+.env
+backups/

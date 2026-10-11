@@ -1,0 +1,7 @@
+Proxy Search Switcher
+Copyright (c) 2026 Proxy Search Switcher contributors
+Project source: MIT, see LICENSE.
+
+External prerequisite: MrOtherGuy/fx-autoconfig 0.10.16, MPL-2.0.
+No fx-autoconfig source or browser binaries are bundled.
+Pinned source, license and reference notices: THIRD-PARTY-NOTICES.md.

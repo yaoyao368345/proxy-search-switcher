@@ -1,0 +1,18 @@
+{
+  "name": "proxy-search-switcher",
+  "version": "0.1.0-beta.1",
+  "private": true,
+  "description": "Windows Firefox-family default search switching from explicit proxy state",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "pretest": "node scripts/build.cjs && node scripts/build-wininet-diagnostic.cjs && node scripts/build-toolhelp-diagnostic.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "build": "node scripts/build.cjs",
+    "test:installer": "pwsh -NoProfile -File tests/installer.ps1",
+    "build:wininet-diagnostic": "node scripts/build-wininet-diagnostic.cjs",
+    "build:toolhelp-diagnostic": "node scripts/build-toolhelp-diagnostic.cjs"
+  }
+}
