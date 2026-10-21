@@ -4,6 +4,14 @@ Windows x64 的 Zen/Firefox 默认搜索引擎自动切换：系统代理或 Mih
 
 **v0.1.0-beta.1已发布，当前源码正在改进安装方式。** 下述向导仅在后续源码中，尚未更新已发布的beta.1附件。Zen1.23.2b核心及S1–S5由用户实机确认；Firefox和全新真实浏览器安装/持久停用/卸载仍未实测。[验证范围](docs/RELEASE-MATRIX.md)。
 
+## 功能演示
+
+56 秒了解 Google / Bing 自动切换、未知状态保持和第三方搜索引擎保护。
+
+https://github.com/user-attachments/assets/cb1fa629-8302-4ce2-b12b-8006646af0ad
+
+> 视频为功能原理示意，非真实浏览器录屏；Firefox 目前仅完成适配与模拟测试。
+
 ## 安装与使用
 
 Windows x64、PowerShell7.2+。在项目根目录双击 **setup.cmd**，选择操作后核对浏览器和Profile；也可以运行：
