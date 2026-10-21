@@ -1,4 +1,4 @@
-[CmdletBinding(SupportsShouldProcess=$true)]
+﻿[CmdletBinding(SupportsShouldProcess=$true)]
 param([ValidateSet('zen','firefox')][string]$Browser='zen',[string]$InstallDir,
     [string]$ProfileDir,[string]$ConfigPath,[switch]$Inspect,[switch]$CreateConfig)
 . "$PSScriptRoot\Common.ps1"
@@ -59,5 +59,6 @@ try {
     Write-Output '安装完成。自行启动浏览器验证；加载器与其他脚本保持原样。'
 } catch {
     if ($published -and (Test-Path -LiteralPath $target) -and (Get-FileHash -LiteralPath $target).Hash -eq $hash) { Remove-Item -LiteralPath $target }
-    throw '安装失败，已回滚本次新增且未变更的模块。保留恢复记录，请运行 Recover.ps1。'
+    $note=if(Test-Path -LiteralPath $journalPath){'保留恢复记录，请运行 Recover.ps1。'}else{'未生成恢复记录。'}
+    throw "安装失败，已回滚本次新增且未变更的模块。$note"
 } finally { if ($createdTemp -and (Test-Path -LiteralPath $temp) -and (Get-FileHash -LiteralPath $temp).Hash -eq $hash) { Remove-Item -LiteralPath $temp } }

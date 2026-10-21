@@ -1,4 +1,4 @@
-[CmdletBinding(SupportsShouldProcess=$true)]
+﻿[CmdletBinding(SupportsShouldProcess=$true)]
 param([Parameter(Mandatory=$true)][string]$BackupDir,[switch]$AllowRunningBrowser)
 . "$PSScriptRoot\Common.ps1"
 $backup=[IO.Path]::GetFullPath($BackupDir);Assert-SafePath $backup

@@ -1,4 +1,4 @@
-[CmdletBinding(SupportsShouldProcess=$true)]
+﻿[CmdletBinding(SupportsShouldProcess=$true)]
 param([ValidateSet('zen','firefox')][string]$Browser='zen',[string]$InstallDir,[Parameter(Mandatory=$true)][string]$ProfileDir)
 . "$PSScriptRoot\Common.ps1"
 $info=Find-Browser $Browser $InstallDir;$profilePath=Get-Profile $ProfileDir

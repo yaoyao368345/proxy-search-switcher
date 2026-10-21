@@ -1,3 +1,4 @@
+﻿#requires -Version 7.2
 [CmdletBinding(SupportsShouldProcess=$true)]
 param([ValidateSet('Inspect','Install','PrepareLoader','ApplyLoader','PrepareUpdate','ApplyUpdate','Uninstall','RestoreUpdate','RestoreLoader')][string]$Action='Inspect',
     [ValidateSet('zen','firefox')][string]$Browser='zen',[string]$InstallDir,[string]$ProfileDir,
@@ -23,6 +24,11 @@ if($prepared){
         if(!$PlanSha256 -and $Interactive){$PlanSha256=Read-Host '输入准备时审阅的计划SHA-256'}
         if(!$PlanSha256){throw '必须提供已审阅的 -PlanSha256。'}
     }
+    $planFile=if($Action -in @('ApplyUpdate','RestoreUpdate')){'update-plan.json'}else{'manifest.json'}
+    $summaryPath=Join-Path ([IO.Path]::GetFullPath($BackupDir)) $planFile;Assert-SafePath $summaryPath
+    $summary=Get-Content -LiteralPath $summaryPath -Raw|ConvertFrom-Json
+    $summaryProfile=if($planFile -eq 'update-plan.json'){$summary.Profile}else{$summary.ProfileDir}
+    Write-Host "快照目标：$($summary.InstallDir) / $summaryProfile"
     if($Action -eq 'ApplyLoader' -and !$AllowSandboxChange -and !$WhatIfPreference){
         if($Interactive){
             Write-Host '此操作仅适用于全新环境，将关闭该安装目录的AutoConfig脚本沙箱，赋予本地脚本浏览器特权。'
@@ -31,11 +37,6 @@ if($prepared){
         }
         if(!$AllowSandboxChange){throw '前置沙箱变更需显式 -AllowSandboxChange，未修改任何目标。'}
     }
-    $planFile=if($Action -in @('ApplyUpdate','RestoreUpdate')){'update-plan.json'}else{'manifest.json'}
-    $summaryPath=Join-Path ([IO.Path]::GetFullPath($BackupDir)) $planFile;Assert-SafePath $summaryPath
-    $summary=Get-Content -LiteralPath $summaryPath -Raw|ConvertFrom-Json
-    $summaryProfile=if($planFile -eq 'update-plan.json'){$summary.Profile}else{$summary.ProfileDir}
-    Write-Host "快照目标：$($summary.InstallDir) / $summaryProfile"
     switch($Action){
         'ApplyLoader' {& "$PSScriptRoot\Apply-Preparation.ps1" -BackupDir $BackupDir -WhatIf:$WhatIfPreference}
         'ApplyUpdate' {& "$PSScriptRoot\Apply-Update.ps1" -BackupDir $BackupDir -PlanSha256 $PlanSha256 -WhatIf:$WhatIfPreference}

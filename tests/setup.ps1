@@ -140,6 +140,18 @@ Assert (!(Test-Path (Join-Path $b.InstallDir 'config.js'))) 'loader WhatIf no wr
 & $setup -Action RestoreLoader -BackupDir $freshBackup -WhatIf
 & $setup -Action RestoreLoader -BackupDir $freshBackup
 Assert (!(Test-Path (Join-Path $b.InstallDir 'config.js')) -and (Test-Path $freshConfig)) 'loader restored independently and config retained'
+# Interactive ApplyLoader shows the snapshot target before requesting ALLOW-AUTOCONFIG.
+$b3=Fixture 'fresh-interactive' $false
+& $setup -Action PrepareLoader @b3 -FxSourceDir $FxSourceDir -BackupDir (Join-Path $root 'fresh3-snapshot')
+$global:PSSSetupFixtureAnswers.Enqueue('4')
+$global:PSSSetupFixtureAnswers.Enqueue((Join-Path $root 'fresh3-snapshot'))
+$global:PSSSetupFixtureAnswers.Enqueue('not the consent phrase')
+Must-Fail {& $setup -Interactive @b3} 'interactive apply without exact consent refused'
+$global:PSSSetupFixtureAnswers.Enqueue('4')
+$global:PSSSetupFixtureAnswers.Enqueue((Join-Path $root 'fresh3-snapshot'))
+$global:PSSSetupFixtureAnswers.Enqueue('ALLOW-AUTOCONFIG')
+& $setup -Interactive @b3
+Assert (Test-Path (Join-Path $b3.InstallDir 'config.js')) 'interactive apply after consent installs loader'
 # Profile discovery lists candidates; no reliance on a default profile.
 . "$project/installer/Common.ps1"
 . "$project/installer/Profiles.ps1"

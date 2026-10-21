@@ -1,4 +1,4 @@
-# Read only profile names/paths; never read a browser's local secret configuration.
+﻿# Read only profile names/paths; never read a browser's local secret configuration.
 function Get-ProfileCandidates([string]$ProfilesIni){
     Assert-SafePath $ProfilesIni
     if(!(Test-Path -LiteralPath $ProfilesIni -PathType Leaf)){return}
