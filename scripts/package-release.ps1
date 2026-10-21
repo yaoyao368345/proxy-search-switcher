@@ -12,7 +12,7 @@ $revision=(& git -C $repo rev-parse HEAD).Trim()
 if($LASTEXITCODE -ne 0){throw '无法读取来源提交。'}
 $tracked=@(& git -C $repo ls-files)
 $selected=@($tracked | Where-Object {
- $_ -in @('README.md','LICENSE','THIRD-PARTY-NOTICES.md','NOTICE','dependencies.lock.json','package.json','AGENTS.md','.gitignore') -or
+ $_ -in @('README.md','setup.cmd','LICENSE','THIRD-PARTY-NOTICES.md','NOTICE','dependencies.lock.json','package.json','AGENTS.md','.gitignore') -or
  $_ -match '^(src|installer|scripts)/' -or
  $_ -match '^examples/(config\.example\.json|diagnostics/[^/]+\.js)$' -or
  $_ -in @('docs/INSTALL.md','docs/CONFIGURATION.md','docs/RECOVERY.md','docs/RELEASE-MATRIX.md','docs/RELEASE-NOTES-v0.1.0-beta.1.md','docs/RELEASE-CHECKLIST.md','docs/ARCHITECTURE.md','docs/FINAL-REVIEW.md','docs/BETA-PUBLISHING.md')

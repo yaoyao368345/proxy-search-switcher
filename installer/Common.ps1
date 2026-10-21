@@ -52,8 +52,18 @@ function Find-Browser([string]$Browser,[string]$InstallDir) {
     return [pscustomobject]@{Directory=$directory;Executable=$exe;Version=[regex]::Match($text,'(?m)^Version=(.+)$').Groups[1].Value.Trim()}
 }
 function Assert-BrowserClosed($Info) {
+    Assert-NoBrowserHelpers $Info
     foreach ($process in @(Get-Process -Name ([IO.Path]::GetFileNameWithoutExtension($Info.Executable)) -ErrorAction SilentlyContinue)) {
         if (!$process.Path -or [IO.Path]::GetFullPath($process.Path) -eq (Join-Path $Info.Directory $Info.Executable)) { throw '请自行退出目标浏览器后重试。脚本不会关闭浏览器。' }
+    }
+}
+function Assert-NoBrowserHelpers($Info) {
+    foreach($name in @('plugin-container','private_browsing','nmhproxy','pingsender','crashhelper','crashreporter','updater')){
+        foreach($process in @(Get-Process -Name $name -ErrorAction SilentlyContinue)){
+            try {$path=$process.Path} catch {throw '无法确认辅助进程路径，请手动确认浏览器已完全退出。'}
+            if(!$path){throw '辅助进程路径不可见，停止修改浏览器文件。'}
+            if([IO.Path]::GetFullPath($path).StartsWith($Info.Directory.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){throw '目标浏览器辅助进程仍运行，请手动退出后重试。'}
+        }
     }
 }
 function Get-Profile([string]$ProfileDir) {
@@ -105,4 +115,10 @@ function Read-Record([string]$profilePath,[switch]$Recovery) {
     if ($record.Project -ne 'proxy-search-switcher' -or $record.Schema -ne 2 -or $record.Profile -ne $profilePath -or
         $record.RelativePath -ne $script:ModuleRelative -or $record.Sha256 -notmatch '^[A-Fa-f0-9]{64}$' -or $record.OriginalExists -ne $false) { throw '安装/恢复记录不可信。' }
     return $record
+}
+
+function Write-NewFile([string]$Path,[byte[]]$Bytes) {
+    Assert-SafePath $Path
+    $stream=[IO.FileStream]::new($Path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+    try {$stream.Write($Bytes,0,$Bytes.Length);$stream.Flush($true)} finally {$stream.Dispose()}
 }

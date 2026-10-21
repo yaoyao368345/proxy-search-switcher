@@ -1,47 +1,86 @@
-# 安装与安全边界
+# 统一安装、升级与恢复
 
-## 前置条件
+本文对应后续源码中的新向导，已发布v0.1.0-beta.1附件没有这些新增入口；不会重传旧版本附件。本次功能仅模拟验证，没有改当前正常运行的Zen。原始私有仓库保持历史归档，后续使用public仓库。
 
-Windows x64、PowerShell7.2+、现代SearchService，Google/Bing存在且未隐藏；fx-autoconfig固定0.10.16、提交dfdab5684faffc112b76ccb1d8cab7f75da0102c，来源见THIRD-PARTY-NOTICES.md。Zen1.23.2b已实测，Firefox未实机验证。
+## 最简单的入口
 
-本包不安装或覆盖fx-autoconfig。上游配置要求general.config.sandbox_enabled=false以执行特权代码；这降低AutoConfig隔离，不关闭网页内容沙箱，影响使用该安装目录的Profiles。安装前自行审查上游并备份其目标文件；已有AutoConfig冲突时停止，不覆盖。准备工具Prepare/Verify/Apply需独立授权，只允许新增安全验证文件。回滚前置安装须按原快照Restore-Preparation，不能删除其他脚本共享的加载器。不要套用其他机器备份。
-
-本项目增量Install不会改安全设置或加载器；fx-autoconfig八个文件按dependencies.lock.json规范化UTF8-LF检查版本来源，未知版本拒绝。
-
-## 增量安装
-
-1. about:profiles核对实际Profile根目录，使用目标浏览器正确目录。
-2. 模板examples/config.example.json默认enabled=false，复制到Profile根目录proxy-search-switcher.local.json，在本地填写必要配置及Token，勿提交、上传或复制到报告。
-3. 从解压包根目录执行Inspect；它只检查能力，不启用。
-4. 手动完全退出目标浏览器，再执行安装。安装器会在内存解析本地配置以校验，不输出Token；不创建含密钥备份。它创建项目模块和所有权记录，不覆盖未知文件。
-5. 手动启动，验证加载器和status=disabled。单独决定是否启用；手动退出后仅改顶层enabled=true，再启动，首轮就可能写默认引擎。
+Windows x64，PowerShell7.2+。解压/检出完整项目后，双击根目录setup.cmd，或：
 
 ```powershell
-pwsh -NoProfile -File installer/Install.ps1 -Browser zen -InstallDir '<Zen安装目录>' -ProfileDir '<Profile根目录>' -Inspect
-pwsh -NoProfile -File installer/Install.ps1 -Browser zen -InstallDir '<Zen安装目录>' -ProfileDir '<Profile根目录>' -WhatIf
-pwsh -NoProfile -File installer/Install.ps1 -Browser zen -InstallDir '<Zen安装目录>' -ProfileDir '<Profile根目录>'
+pwsh -NoProfile -File installer/Setup.ps1 -Interactive
 ```
 
-Firefox使用Browser firefox，但所有真实测试未执行，不据Zen结果宣称Firefox实测。脚本不会自动结束浏览器。
+向导列出操作，自动尝试识别安装目录；有多套安装时要求手动指定。列出profiles.ini的Profile候选，但**不选择默认项**：用户必须用about:profiles核对并输入编号/根目录。所有准备快照应用/恢复前显示其目标。
 
-## 安全更新
+没有安装PowerShell7时只提示官方获取地址；不自动安装依赖、不请求管理员权限、不设置执行策略Bypass。脚本被系统策略或下载标记阻止时先核对来源/策略，由用户处理，不通过关闭安全检查绕过。
 
-Prepare-Update只为已拥有模块/记录生成两文件备份、载荷和固定哈希计划，不读/复制/哈希密钥配置。Verify-Update必须在部署前检查旧目标/备份/载荷/加载器/配置元数据。不要直接复制dist通用文件；它没有目标Profile安装路径，与专用载荷哈希不同。
+## 只读检查
 
 ```powershell
-pwsh -NoProfile -File installer/Prepare-Update.ps1 -InstallDir '<Zen目录>' -ProfileDir '<Profile根目录>' -BackupDir '<全新外部准备目录>'
-pwsh -NoProfile -File installer/Verify-Update.ps1 -BackupDir '<准备目录>'
+pwsh -NoProfile -File installer/Setup.ps1 -Action Inspect -Browser zen -InstallDir '<Zen目录>' -ProfileDir '<Profile根目录>'
 ```
 
-v0.1.0提供准备、验证和恢复脚本，未提供通用自动应用更新命令。批准部署后只使用准备payload、复核目标旧哈希、外部事务备份、写后校验与操作记录；两个文件不是整体原子事务。未知文件变化、重解析点或冲突立即停止。更新后手动重启验证。
+仅检查加载器、项目记录及配置是否存在，不读本地配置正文。缺少/多个Profile不得猜测；链接、Junction、未知版本加载器、旧文件冲突会拒绝修改。辅助进程未退出或无法确认路径也会停止。
 
-停用、卸载和异常恢复见RECOVERY.md。此前机器的授权历史单独保存在INSTALL-HISTORY.md，不作为通用安装步骤，分发包不包含该机器历史。
+## 已有fx-autoconfig：增量安装
 
+选择菜单2。依赖固定0.10.16及锁定八文件，不覆盖加载器、其他用户脚本或已有配置。
 
-## 独立获取fx-autoconfig
+```powershell
+pwsh -NoProfile -File installer/Setup.ps1 -Action Install -InstallDir '<Zen目录>' -ProfileDir '<Profile根目录>' -WhatIf
+# 用户手动完全退出目标浏览器后，移除-WhatIf再执行。
+```
 
-从 THIRD-PARTY-NOTICES.md 的固定提交下载源码ZIP并解压，核对LICENSE与dependencies.lock.json的八文件；不要用不匹配的latest替换。若浏览器已有AutoConfig或未知加载器，停止，不覆盖。全新环境先用Prepare.ps1 -Browser zen -InstallDir '<独立Zen目录>' -ProfileDir '<独立Profile>' -FxSourceDir '<固定源码>' -BackupDir '<全新外部快照>'，再Verify-Preparation.ps1 -BackupDir '<快照>'；审阅目标文件、沙箱变更及回滚后，手动退出独立浏览器并授权Apply-Preparation.ps1 -BackupDir '<快照>'。第一次用停用空Token模板，仅验证加载。不要复用别人的准备快照。
+配置缺失时，新建enabled=false/Token为空的完整模板；已有配置不重写，Install仅在内存验证必需字段，不打印Token。配置需用户本地填写，先验证disabled再决定是否改enabled。不能把单字段片段覆盖完整JSON。已安装但配置丢失时不会擅自重建；先人工恢复。重复安装不重复写入。失败安装只回滚已拥有模块，可能保留新建停用模板和恢复记录，不删除用户配置。
 
-依赖配置降低AutoConfig沙箱隔离，需用户单独批准，变更范围是该浏览器安装。已存在依赖时优先增量Install，不修改第三方文件。新安装项目与加载器使用不同所有权/恢复机制；卸载项目不会撤销沙箱变更。
+新模板不启用项目，已有enabled值保持原样。不会自动退出或启动浏览器；用户手动重启后，已有enabled=true配置会正常运行原策略。
 
-升级采用Prepare-Update/Verify-Update的两文件计划；本版没有通用自动Apply-Update命令。用户需在独立批准的维护流程中替换固定payload与配套记录、保留事务/旧哈希并手动重启。若不具备该流程，应采用已验证的关闭浏览器→Uninstall（保留配置）→用新版源码Install路径，不直接覆盖旧模块。升级前核验旧所有权/模块及其他脚本；任何未知编辑拒绝。当前环境本阶段不执行任何升级。
+## 新环境：前置准备和应用分开
+
+选择菜单3，再选择4；不自动从网络拉取第三方代码。用户独立获取[固定fx-autoconfig源码](https://github.com/MrOtherGuy/fx-autoconfig/tree/dfdab5684faffc112b76ccb1d8cab7f75da0102c)并解压。来源/许可见THIRD-PARTY-NOTICES.md和NOTICE。
+
+```powershell
+pwsh -NoProfile -File installer/Setup.ps1 -Action PrepareLoader -InstallDir '<Zen目录>' -ProfileDir '<Profile根目录>' -FxSourceDir '<固定源码>' -BackupDir '<全新外部备份目录>'
+pwsh -NoProfile -File installer/Setup.ps1 -Action ApplyLoader -BackupDir '<同一备份目录>' -WhatIf
+# 审阅快照、手动退出浏览器，并明确批准沙箱变更后：
+pwsh -NoProfile -File installer/Setup.ps1 -Action ApplyLoader -BackupDir '<同一备份目录>' -AllowSandboxChange
+```
+
+准备只创建备份/载荷，不改浏览器。仅限所有拟新增文件尚不存在的新环境；遇到已有配置会在读取、哈希、复制前停止，防止把真实密钥带入快照。其他未知AutoConfig也不能在应用时合并或覆盖。
+
+前置应用会设置general.config.sandbox_enabled=false，使可信本地脚本拥有浏览器特权。这降低AutoConfig脚本隔离，影响使用该安装目录的Profiles，不关闭网页内容沙箱。交互入口要求输入ALLOW-AUTOCONFIG，命令行需-AllowSandboxChange；WhatIf无需该同意，但仍检查浏览器退出状态。普通增量安装不会改安全策略。已存在前置配置时使用增量模式，不强行重复前置安装。
+
+这一步仅支持Zen；Firefox仍为增量代码适配/模拟，不实际安装或测试。
+
+## 安全升级：不用先卸载
+
+选择菜单5生成新载荷、旧两文件备份及update-plan.json，输出计划SHA-256。备份必须在浏览器和Profile之外，应用原子替换还要求与Profile同卷。建议用户自己的外部备份目录，不放Git中；新目录不得已存在。
+
+```powershell
+pwsh -NoProfile -File installer/Setup.ps1 -Action PrepareUpdate -InstallDir '<Zen目录>' -ProfileDir '<Profile根目录>' -BackupDir '<全新外部同卷备份目录>'
+# 审阅两个目标/新旧哈希，复制输出的计划SHA-256；手动退出浏览器。
+pwsh -NoProfile -File installer/Setup.ps1 -Action ApplyUpdate -BackupDir '<上述备份>' -PlanSha256 '<已审阅的64位SHA-256>' -WhatIf
+# 检查无误后移除-WhatIf。
+```
+
+应用仅替换项目模块和安装记录；不读取/复制/哈希密钥配置。配置长度/修改时间不符则停止，原enabled、Token等字段不变。源代码或载荷改变后需新快照和重新审阅，不能悄悄刷新计划哈希跳过。
+
+先暂存并复核完整基线，再逐个File.Replace，外部保留replaced-original备份和receipt.json。每次替换检查进程、旧哈希及计划，完成后检查两个新哈希、公共加载器及配置元数据。两文件并非一个全局原子事务；中途失败停在failed-stop，不盲目回滚未知改动。备份与已替换部分均保留，使用恢复入口处理；已有事务禁止重放。
+
+调用底层脚本也支持同样操作：Prepare-Update/Verify-Update/Apply-Update -PlanSha256。前两步可在目标浏览器运行时准备；应用/恢复/卸载及对应WhatIf要求它已退出。
+
+## 恢复与卸载
+
+```powershell
+pwsh -NoProfile -File installer/Setup.ps1 -Action RestoreUpdate -BackupDir '<更新备份>' -WhatIf
+pwsh -NoProfile -File installer/Setup.ps1 -Action Uninstall -InstallDir '<Zen目录>' -ProfileDir '<Profile根目录>' -WhatIf
+pwsh -NoProfile -File installer/Setup.ps1 -Action RestoreLoader -BackupDir '<前置安装快照>' -WhatIf
+```
+
+审阅后明确执行时移除WhatIf。升级恢复仅恢复两个项目文件到旧哈希，任何未知文件不覆盖。卸载保留密钥配置、其他脚本、加载器及最后默认引擎。前置恢复会移除/恢复快照对应的加载器和安全选择文件，影响共享该加载器的其他脚本；需另行审查并先卸载项目，不是日常卸载的一部分。不要复用别人的备份。
+
+安装中断仍可用Recover.ps1。永久停用依然由用户手动退出、只改单字段enabled=false、再启动；向导不处理真实Token、不自动停用或启用。详细异常恢复见RECOVERY.md。
+
+## 验证边界
+
+向导、Profile解析、停用模板、准备/应用/恢复、部分失败及冲突均仅在临时fixture中验证；不会把模拟说成全新真实Zen验收。Windowsx64/Zen1.23.2b原核心用户实机结果保持不变。Firefox、Hyper-V完整新环境和新安装UI实机仍未验证。此次开发不修改已发布Tag/Release或当前安装。

@@ -2,21 +2,25 @@
 
 Windows x64 的 Zen/Firefox 默认搜索引擎自动切换：系统代理或 Mihomo TUN 任一明确开启选择 Google，两者明确关闭选择 Bing，其余未知组合保持当前引擎。使用 fx-autoconfig 0.10.16 加载一个全局模块，无扩展或外部常驻服务。
 
-**v0.1.0-beta.1 公开测试版准备中（尚未发布）。** Zen 1.23.2b 已由用户完成核心及稳定性实机验收；Firefox 仅适配与模拟测试。尚未创建版本Tag或GitHub Release。全新真实环境安装、持久停用和卸载尚未实测，Hyper-V验收保留为正式v0.1.0后续任务。详见[验证矩阵](docs/RELEASE-MATRIX.md)和[beta说明](docs/RELEASE-NOTES-v0.1.0-beta.1.md)。
+**v0.1.0-beta.1已发布，当前源码正在改进安装方式。** 下述向导仅在后续源码中，尚未更新已发布的beta.1附件。Zen1.23.2b核心及S1–S5由用户实机确认；Firefox和全新真实浏览器安装/持久停用/卸载仍未实测。[验证范围](docs/RELEASE-MATRIX.md)。
 
 ## 安装与使用
 
-需要 Windows x64、PowerShell7.2+、已安装且匹配依赖锁的fx-autoconfig0.10.16。fx-autoconfig脚本以浏览器特权运行；上游要求关闭AutoConfig脚本沙箱，降低隔离边界（不关闭网页沙箱）。只安装可信固定版本，先确认[安装文档](docs/INSTALL.md)的权限和安全影响，再自行退出浏览器安装。安装器从源码生成目标Profile专用模块，拒绝覆盖未知文件或修改加载器。
-
-从 `examples/config.example.json` 创建Profile根目录的 `proxy-search-switcher.local.json`，模板默认停用、Token为空。只在本地填写密钥，先完成停用加载检查，再手动仅改enabled并重启。[配置说明](docs/CONFIGURATION.md)。
+Windows x64、PowerShell7.2+。在项目根目录双击 **setup.cmd**，选择操作后核对浏览器和Profile；也可以运行：
 
 ```powershell
-pwsh -NoProfile -File installer/Install.ps1 -Browser zen -InstallDir 'D:\Zen' -ProfileDir '<Profile根目录>' -Inspect
-# 手动退出Zen后：
-pwsh -NoProfile -File installer/Install.ps1 -Browser zen -InstallDir 'D:\Zen' -ProfileDir '<Profile根目录>'
+pwsh -NoProfile -File installer/Setup.ps1 -Interactive
 ```
 
-默认每2秒检测；当前为Google/Bing时受项目策略管理，第三方引擎保留。配置变更仅下次启动生效。
+- **已有fx-autoconfig**：选“增量安装”。缺少配置时创建enabled=false、Token为空的模板；已有配置完整保留。
+- **全新环境**：先“准备全新加载器”，审阅快照，再“应用前置安装”。固定使用fx-autoconfig0.10.16，未知文件/AutoConfig冲突会停止，不覆盖。
+- **升级**：先“准备升级”，保存计划SHA-256；手动退出浏览器后“应用升级”，核对哈希并保留恢复记录，不需先卸载。
+
+fx-autoconfig以浏览器特权运行，前置安装会降低AutoConfig脚本沙箱隔离（不关闭网页沙箱），应用必须明确确认。不自动关闭/重启浏览器，不读取Token用于显示或备份，不自动启用；用户只在本地填写配置，手动重启才生效。首次Install在内存校验已有配置，不输出其内容。
+
+安装时请用about:profiles核对根目录，不自动选默认Profile。先用检查/WhatIf审阅，再决定写入。完整命令、权限及恢复见[安装说明](docs/INSTALL.md)、[配置说明](docs/CONFIGURATION.md)。
+
+默认每2秒检测，Google/Bing受项目策略管理，第三方引擎保留。运行时密钥留在本地，不提交Git或报告。
 
 ## 停用、卸载和恢复
 
@@ -27,5 +31,7 @@ pwsh -NoProfile -File installer/Install.ps1 -Browser zen -InstallDir 'D:\Zen' -P
 Node20+，无npm依赖：`npm test`；PowerShell模拟流程见[发布清单](docs/RELEASE-CHECKLIST.md)。生产通用构建：`npm run build`；不要把通用dist文件直接覆盖Profile专用模块。
 
 本项目MIT。fx-autoconfig独立采用MPL-2.0，不随分发包提供；[来源及许可说明](THIRD-PARTY-NOTICES.md)。
+
+以后统一在本公开仓库开发，原私有仓库仅作历史归档；本轮不推送或修改既有Release。
 
 安装ZIP不含开发测试目录；开发测试应从完整源码检出执行。安装包包含安装器依赖的src和dependencies.lock.json，无需Node安装即可用PowerShell增量安装。

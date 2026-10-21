@@ -21,6 +21,14 @@ $owned=Read-Record $profilePath
 if(!$owned -or $owned.Sha256 -ne $plan.Files[0].OldSha256 -or $owned.InstallDir -ne $info.Directory){throw '模块与原安装记录不一致。'}
 $next=Get-Content -LiteralPath (Join-Path $backup $plan.Files[1].Payload) -Raw|ConvertFrom-Json
 if($next.Sha256 -ne $plan.Files[0].NewSha256 -or $next.ConfigPath -ne $owned.ConfigPath -or $next.Profile -ne $profilePath){throw '新安装记录与载荷不一致。'}
+$oldKeys=@($owned.PSObject.Properties.Name|Sort-Object)
+$newKeys=@($next.PSObject.Properties.Name|Sort-Object)
+if(($oldKeys -join '|') -cne ($newKeys -join '|')){throw '新安装记录字段发生未知变化。'}
+foreach($key in $oldKeys){if($key -ne 'Sha256' -and $owned.$key -cne $next.$key){throw '安装记录只能更新模块哈希。'}}
+$lock=Get-Content -LiteralPath (Join-Path $script:ProjectRoot 'dependencies.lock.json') -Raw|ConvertFrom-Json
+$expectedAudit=@($lock.Files|ForEach-Object {if($_.Path.StartsWith('program/')){Join-Path $info.Directory $_.Path.Substring(8)}else{Join-Path $profilePath $_.Path.Substring(8)}})
+if(@($plan.FxAudit).Count -ne $expectedAudit.Count -or @($plan.FxAudit.Target|Select-Object -Unique).Count -ne $expectedAudit.Count){throw '加载器审计范围不完整。'}
+foreach($audit in $plan.FxAudit){if($audit.Target -notin $expectedAudit){throw '未知加载器审计目标。'}}
 $fx=Get-FxCapability $info $profilePath;if(!$fx.Ready){throw '前置加载器发生变化。'}
 foreach($file in $plan.FxAudit){Assert-SafePath $file.Target;if((Get-FileHash -LiteralPath $file.Target).Hash -ne $file.Sha256){throw '共享加载器文件变更。'}}
 if($plan.ConfigMetadata.Path -ne $owned.ConfigPath){throw '配置元数据路径不符。'}

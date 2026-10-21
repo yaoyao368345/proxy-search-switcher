@@ -32,6 +32,7 @@ $inventory=@()
 foreach($plan in $planned){
     $target=Join-Path $roots[$plan.Root] $plan.RelativePath;Assert-SafePath $target
     $exists=Test-Path -LiteralPath $target
+    if($exists){throw '全新前置准备要求所有拟新增文件不存在；已有加载器用增量安装，已有配置或未知文件保持原样。'}
     if($exists -and !(Test-Path -LiteralPath $target -PathType Leaf)){throw "目标不是普通文件：$target"}
     $inventory+= [pscustomobject]@{Root=$plan.Root;RelativePath=$plan.RelativePath;Target=$target;OriginalExists=[bool]$exists;
         OriginalSha256=if($exists){(Get-FileHash -LiteralPath $target).Hash}else{$null};PayloadSha256=$null;

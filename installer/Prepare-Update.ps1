@@ -42,8 +42,10 @@ $plan=[ordered]@{Project='proxy-search-switcher-update';Schema=1;Applied=$false;
     Files=@(@{Target=$target;Original='originals/proxy-search-switcher.sys.mjs';Payload='payload/proxy-search-switcher.sys.mjs';OldSha256=$oldModuleHash;NewSha256=$newHash},
         @{Target=$ownershipPath;Original='originals/proxy-search-switcher.install.json';Payload='payload/proxy-search-switcher.install.json';OldSha256=$oldRecordHash;NewSha256=$newRecordHash});
     ConfigMetadata=@{Path=$configPath;Length=$configMeta.Length;LastWriteTimeUtcTicks=$configMeta.LastWriteTimeUtc.Ticks;ContentRead=$false;WillModify=$false};
-    FxAudit=$fxAudit;MustRemainDisabled=$true;MustCloseBrowserBeforeDeployment=$true}
+    FxAudit=$fxAudit;WillModifyConfig=$false;WillStartBrowser=$false;MustCloseBrowserBeforeDeployment=$true}
 Write-Utf8 "$backup\update-plan.json" ($plan|ConvertTo-Json -Depth 6)
 Write-Output 'PASS: 已备份两个本项目文件并生成新版载荷；没有修改 Zen；没有读取或复制密钥配置。'
 Write-Output "旧模块 SHA-256: $oldModuleHash"
 Write-Output "新模块 SHA-256: $newHash"
+
+Write-Output "计划 SHA-256: $((Get-FileHash -LiteralPath (Join-Path $backup 'update-plan.json')).Hash)"

@@ -20,3 +20,7 @@ pwsh -NoProfile -File installer/Uninstall.ps1 -Browser zen -InstallDir '<Zen目�
 独立fx-autoconfig回滚用原始前置快照Restore-Preparation，需要另行授权与确认共享依赖。不删公共加载器，不扩大恢复到其他Profile，不重写Token配置。
 
 持久停用/卸载安全验收计划：先用户授权→核验模块记录/加载器及安全路径→手动退出→单字段false→启动确认disabled、无切换→关闭→Uninstall WhatIf→明确执行授权→卸载核验仅两文件删除、其他脚本/加载器保留→启动无项目加载且当前引擎保留。无密钥备份，恢复需用户保留配置并用增量Install重新安装。当前计划不执行。
+
+## 新版源码统一入口
+
+Setup.ps1 -Action RestoreUpdate/Uninstall/RestoreLoader提供同样安全校验和WhatIf。新Apply-Update记录deployment-transaction/receipt.json；部分更新failed-stop保留原文件和事务备份，不强行重放。先审阅后RestoreUpdate -WhatIf，可恢复两个项目文件分别为已知新/旧哈希的中间状态。此功能只在后续源码，已发布beta.1包不含。

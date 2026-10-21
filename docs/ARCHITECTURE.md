@@ -66,3 +66,7 @@ Zen 当前 release 构建的 AutoConfig 默认沙箱阻止特权 API。上游 [c
 ## WinINet ABI 修订
 
 原生 WinINet 查询拆为 src/platform/windows/wininet.cjs，Option=16、List=32，运行时还检查字段偏移。通过 addressOfField 获取 union 存储；逐项查询只释放成功转交的字符串，失败输出指针保持未触碰。生产和生成的只读诊断使用同一 reader。细节、失败语义和限制见 WININET-ABI.md。
+
+## 安装维护入口
+
+后续源码提供setup.cmd及Setup.ps1统一调度既有Prepare/Apply/Install/Restore，Profiles.ps1只解析profiles.ini、不替用户决定默认Profile。新配置使用CreateNew创建停用模板，既有配置不重写。Apply-Update要求外部已审阅计划SHA-256，逐文件原子替换、独立原备份和事务记录；两目标非整体原子，部分失败停止并由已知哈希恢复。配置正文不读/不复制，应用前后只核对配置元数据。fx-autoconfig仍独立固定依赖，不重写加载器、不自动下载/降低权限；前置沙箱变更单独同意。生产检测/切换代码不改。
