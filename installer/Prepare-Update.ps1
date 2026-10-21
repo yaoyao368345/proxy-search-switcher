@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$InstallDir,[Parameter(Mandatory=$true)][string]$ProfileDir,
     [Parameter(Mandatory=$true)][string]$BackupDir)
 . "$PSScriptRoot\Common.ps1"
@@ -13,6 +13,7 @@ $backup=[IO.Path]::GetFullPath($BackupDir);Assert-SafePath $backup
 foreach($root in @($info.Directory,$profilePath)){
     if($backup.Equals($root,[StringComparison]::OrdinalIgnoreCase) -or $backup.StartsWith($root.TrimEnd('\')+'\',[StringComparison]::OrdinalIgnoreCase)){throw '备份必须在实际安装和 profile 之外。'}
 }
+if([IO.Path]::GetPathRoot($backup) -ne [IO.Path]::GetPathRoot($profilePath)){throw '备份须与Profile同卷，原子替换才有意义。'}
 if(Test-Path -LiteralPath $backup){throw '目标备份目录必须尚不存在。'}
 $ownershipPath=Join-Path $profilePath 'proxy-search-switcher.install.json';Assert-SafePath $ownershipPath
 $configPath=[IO.Path]::GetFullPath($record.ConfigPath);Assert-SafePath $configPath

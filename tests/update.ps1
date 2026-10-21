@@ -27,6 +27,7 @@ function Get-Process{param($Name,$ErrorAction)return @()}
 function Assert($Condition,[string]$Message){if(!$Condition){throw "FAILED: $Message"}}
 function Must-Fail([scriptblock]$Action,[string]$Message){$failed=$false;try{& $Action|Out-Null}catch{$failed=$true};Assert $failed $Message}
 $params=@{InstallDir=$browser;ProfileDir=$profilePath;BackupDir=$backup}
+Must-Fail {& "$project\installer\Prepare-Update.ps1" -InstallDir $browser -ProfileDir $profilePath -BackupDir 'Z:\pss-cross-volume-should-not-exist-9f31d2'} 'cross-volume backup refused at preparation'
 $moduleHash=(Get-FileHash $target).Hash;$ownedHash=(Get-FileHash $ownedPath).Hash
 $result=& "$project\installer\Prepare-Update.ps1" @params|Out-String
 Assert (!$result.Contains('fixture-credential')) 'preparation output must not expose credentials'

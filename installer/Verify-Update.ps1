@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$BackupDir)
 . "$PSScriptRoot\Common.ps1"
 $backup=[IO.Path]::GetFullPath($BackupDir);Assert-SafePath $backup

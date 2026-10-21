@@ -1,5 +1,6 @@
-Set-StrictMode -Version Latest
+﻿Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
+if($PSVersionTable.PSVersion -lt [version]'7.2'){throw '需要 PowerShell 7.2+（pwsh）。安装地址：https://aka.ms/powershell-release'}
 $script:ProjectRoot=Split-Path -Parent $PSScriptRoot
 $script:ModuleRelative='chrome\JS\proxy-search-switcher.sys.mjs'
 

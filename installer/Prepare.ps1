@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([ValidateSet('zen','firefox')][string]$Browser='zen',[string]$InstallDir,
     [Parameter(Mandatory=$true)][string]$ProfileDir,
     [Parameter(Mandatory=$true)][string]$FxSourceDir,
